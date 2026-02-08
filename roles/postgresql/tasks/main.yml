@@ -2,6 +2,5 @@
 ---
 # tasks file for roles/postgresql
 
----
 - import_tasks: install.yml
 - import_tasks: restore.yml
