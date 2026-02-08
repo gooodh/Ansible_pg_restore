@@ -1,0 +1,12 @@
+
+---
+
+pg_version: 16
+
+pg_db_name: mailing_bot
+pg_db_user: postgres_bot
+
+pg_dump_file: db_mailing_bot_2026-02-07.sql.gz
+pg_dump_sha256: db_mailing_bot_2026-02-07.sql.gz.sha256
+
+pg_restore_dir: /opt/db_restore
