@@ -1,0 +1,6 @@
+- name: Update packages
+  hosts: all
+  become: true
+  roles:
+    - { role: update-packages, tags: ["update"] }
+    - { role: postgresql, tags: ["postgresql"] }
