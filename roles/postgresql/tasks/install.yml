@@ -1,0 +1,14 @@
+- name: Install PostgreSQL packages
+  apt:
+    name:
+      - postgresql-{{ pg_version }}
+      - postgresql-client-{{ pg_version }}
+      - python3-psycopg2
+    state: present
+    update_cache: yes
+
+- name: Ensure PostgreSQL is running
+  service:
+    name: postgresql
+    state: started
+    enabled: yes

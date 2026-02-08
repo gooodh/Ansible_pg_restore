@@ -1,0 +1,54 @@
+- name: Create restore directory
+  file:
+    path: "{{ pg_restore_dir }}"
+    state: directory
+    mode: "0755"
+
+- name: Copy dump file
+  copy:
+    src: "{{ pg_dump_file }}"
+    dest: "{{ pg_restore_dir }}/{{ pg_dump_file }}"
+    mode: "0644"
+
+- name: Copy sha256 file
+  copy:
+    src: "{{ pg_dump_sha256 }}"
+    dest: "{{ pg_restore_dir }}/{{ pg_dump_sha256 }}"
+    mode: "0644"
+
+- name: Verify dump checksum
+  command: sha256sum -c {{ pg_dump_sha256 }}
+  args:
+    chdir: "{{ pg_restore_dir }}"
+  register: checksum
+  changed_when: false
+
+- name: Fail if checksum invalid
+  fail:
+    msg: "SHA256 checksum validation failed"
+  when: "'OK' not in checksum.stdout"
+
+- name: Ensure PostgreSQL user exists
+  become_user: postgres
+  postgresql_user:
+    name: "{{ pg_db_user }}"
+    password: "{{ pg_db_password }}"
+    role_attr_flags: LOGIN
+    state: present
+
+- name: Ensure database exists
+  become_user: postgres
+  postgresql_db:
+    name: "{{ pg_db_name }}"
+    owner: "{{ pg_db_user }}"
+    encoding: UTF8
+    state: present
+
+- name: Restore database (only if empty)
+  become_user: postgres
+  shell: |
+    if ! psql {{ pg_db_name }} -tAc "SELECT 1 FROM pg_tables WHERE schemaname='public' LIMIT 1;" | grep -q 1; then
+      gunzip -c {{ pg_restore_dir }}/{{ pg_dump_file }} | psql {{ pg_db_name }}
+    fi
+  args:
+    executable: /bin/bash
