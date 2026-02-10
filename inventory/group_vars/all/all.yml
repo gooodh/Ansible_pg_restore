@@ -1,6 +1,5 @@
 
 ---
-
 pg_version: 16
 
 pg_db_name: mailing_bot
