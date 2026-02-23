@@ -1,0 +1,31 @@
+- name: Check if PostgreSQL {{ pg_version }} is available
+  shell: apt policy postgresql-{{ pg_version }} | grep -q 'Candidate:'
+  register: pg_available
+  failed_when: false
+  changed_when: false
+
+- name: Create keyrings directory
+  file:
+    path: /etc/apt/keyrings
+    state: directory
+    mode: '0755'
+  when: pg_available.rc != 0
+
+- name: Download PostgreSQL GPG key
+  get_url:
+    url: https://www.postgresql.org/media/keys/ACCC4CF8.asc
+    dest: /etc/apt/keyrings/postgresql.asc
+    mode: '0644'
+  when: pg_available.rc != 0
+
+- name: Add PostgreSQL repository
+  apt_repository:
+    repo: "deb [signed-by=/etc/apt/keyrings/postgresql.asc] http://apt.postgresql.org/pub/repos/apt {{ ansible_distribution_release }}-pgdg main"
+    state: present
+    filename: pgdg
+  when: pg_available.rc != 0
+
+- name: Update apt cache after adding repository
+  apt:
+    update_cache: yes
+  when: pg_available.rc != 0
