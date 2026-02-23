@@ -22,11 +22,7 @@
     chdir: "{{ pg_restore_dir }}"
   register: checksum
   changed_when: false
-
-- name: Fail if checksum invalid
-  fail:
-    msg: "SHA256 checksum validation failed"
-  when: "'OK' not in checksum.stdout"
+  failed_when: checksum.rc != 0
 
 - name: Ensure PostgreSQL user exists
   become_user: postgres
